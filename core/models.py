@@ -3,7 +3,7 @@ from django.db import models
 # Create your models here.
 
 class RegistrationModel(models.Model):
-    customer = models.IntegerField()
+    customer_id = models.IntegerField(unique=True)
     customer_name = models.CharField(max_length=250 ,null=True)
     customer_mobile_no = models.BigIntegerField(primary_key=True)
     customer_email_id = models.CharField(max_length=250, null =True ,blank= False)
@@ -20,5 +20,18 @@ class RegistrationModel(models.Model):
         managed = True
         db_table = 'Registration_details'
 
+
+class CustomerOtp(models.Model):
+    otp_id = models.BigAutoField(primary_key=True)
+    phone = models.CharField(max_length=45, blank=True, null=True)
+    email = models.CharField(max_length=100, blank=True, null=True)
+    otp_time = models.DateTimeField(auto_now_add=True)
+    otp = models.CharField(max_length=45, blank=True, null=True)
+    # 
+    # otp1 = models.CharField(max_length=45, blank=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = 'customer_otp'
 
     

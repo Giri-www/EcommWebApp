@@ -1,12 +1,12 @@
 from datetime import datetime
 import hashlib
 import logging
-import re
+import re,random
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.db import connection, connections, transaction
 from errors import *
-from .models import RegistrationModel
+from .models import RegistrationModel,CustomerOtp
 from constants import *
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -118,3 +118,40 @@ def registrationUser(request):
         connections.close_all()
         logger.info("Database connection is closed")
         logger.info("<=============== End - Candidate Registration ===============>")
+
+
+
+@api_view(['POST'])
+def generateOtp(request):
+    logger.info("=============== Generate Otp started ================")
+    try:
+
+            data = request.data
+            logger.info(f"Request Data : {data}")
+            
+            phone = data['phone']
+            email = data['email']
+            otp_flag = data['otp_flag'] if data.get('otp_flag') else None
+            if phone is not None:
+                logger.info("Cuatomer phone is not None")
+                if re.match(r"^[6789]{1}\d{9}$", str(phone)):
+                        logger.info('Customer User Name is Phone')  
+                        otp =  random.randrange(100000, 999999)
+                        otp = str(otp)
+                        logger.info(f'otp is {otp}')
+                        otptime = str(datetime.utcnow())
+                        otpdata = {"otp":str(otp),"phone":phone,"email":email,"otp_time":otptime}
+                        logger.info(f'otpdata is {otpdata}')
+                        CustomerOtp.objects.create(**otpdata)
+                        logger.info("<================ End - Customer Generate OTP ===============>")
+                        return Response({CODE : SUCCESSCODE})
+                else:
+                    raise InvalidMailPhoneException("phone no is not valid")      
+            else:
+                raise InvalidMailPhoneException("Phone no should not be null")
+    except Exception as e:
+        return Response({CODE:ERRORCODE})
+    
+    finally:
+        connections.close_all()
+        logger.info("<================ End finaly connrctions - Customer Generate OTP ===============>")

@@ -6,7 +6,8 @@ from core.views import *
 urls=[
 
 #Registration
-path('signup/',registrationUser)
+path('signup/',registrationUser),
+path('generateotp/',generateOtp)
 
 
 

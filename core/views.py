@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 import hashlib
 import logging
 import re
@@ -8,12 +8,16 @@ from django.db import connection, connections, transaction
 from errors import *
 from .models import RegistrationModel
 from constants import *
-
+from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 logger = logging.getLogger(__name__)
-# Create your views here.
 
+# Create your views here.
+@api_view(['POST'])
 def registrationUser(request):
+    
 
     errorkeys = ['Info','Business_Errors','Warnings','System_Errors']
     errordisplay = [[],[],[],[]]
@@ -22,56 +26,57 @@ def registrationUser(request):
 
     logger.info("================= started the register function ====================")
     try:
-        if request.method == 'POST':
-            customerName = request.POST['customer_name'] if request.POST['customer_name'] else None
-            customerMobileno = request.POST['customer_mobile_no'] if request.POST['customer_mobile_no'] else None
-            customerEmailid = request.POST['customer_email_id']  if request.POST['customer_email_id'] else None
-            customerGender = request.POST['customer_gender']  if request.POST['customer_gender'] else None
-            creadtedOn = request.POST['created_on']  if request.POST['created_on'] else None
-            updatedOn = request.POST['updated_on'] if request.POST['updated_on'] else None
-            createdBy = request.POST['cearted_by'] if request.POST['created_by'] else None
-            updatedBy = request.POST['updated_by'] if request.POST['updated_by'] else None
-            activeStatus = request.POST['active_status'] if request.POST['active_status'] else None
-            password = request.POST['password'] if request.POST['password'] else None
+            data = request.data
+            logger.info(f"Requested Data = {data}")
+            customerName = data['customer_name'] 
+            customerMobileno = data['customer_mobile_no'] 
+            customerEmailid = data['customer_email_id'] 
+            customerGender = data['customer_gender']  if data.get('customer_gender') else None
+            creadtedOn = data['created_on']  if data.get('created_on') else None
+            updatedOn = data['updated_on'] if data.get('updated_on') else None
+            createdBy = data['cearted_by'] if data.get('created_by') else None
+            updatedBy = data['updated_by'] if data.get('updated_by') else None
+            activeStatus = data['active_status'] if data.get('active_status') else None
+            password = data['password'] 
 
             if(customerMobileno in (None,'') or customerEmailid in (None,'') or customerName in (None,'') or password in (None,'')):
-                raise Exception('Some Mandatory fields are Missing')
+                raise MandatoryInputMissingException('Some Mandatory fields are Missing')
             
             with transaction.atomic():
 
-                if re.match(r"^[6789]{1}\d{9}$", customerMobileno) and re.match(r"^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$",customerEmailid):
+                if re.match(r"^[6789]{1}\d{9}$",str(customerMobileno)) and re.match(r"^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$",str(customerEmailid)):
                     logger.info("Phone Number & Email Format is Valid")
+                
+                    mobile_no = RegistrationModel.objects.filter(customer_mobile_no = customerMobileno).exists()
+
+                    if mobile_no:
+                        raise CustomerExistsException("User Phone Already Exist")
                 else:
                     raise InvalidMailPhoneException("Invalid Phone or Email Format")
-                
-                mobile_no = RegistrationModel.objects.filter(customer_mobile_no = customerMobileno).exists()
-
-                if mobile_no:
-                    raise CustomerExistsException("User Phone Already Exist")
-                
                 passwordSha256 = hashlib.sha256(password.encode('UTF-8')).hexdigest()
                 current_date = str(datetime.utcnow())
                 logger.info("=========== adding to the db processing =================")
+                customerMobileno1 = int(customerMobileno)
                 
-                request_dict = [{
+                request_dict = {
                 'customer_name' : customerName,
-                'customer_mobile_no' : customerMobileno,
+                'customer_mobile_no' : customerMobileno1,
                 'customer_email_id' : customerEmailid,
                 'customer_gender' : customerGender,
                 'created_on' : current_date,
                 'updated_on' : current_date,
-                'activeStatus' : activeStatus,
+                'active' : activeStatus,
                 'password' : passwordSha256
-            }]
-                
-            insert_response = RegistrationModel.objects.create(**request_dict)
-            customerId = insert_response.customer_id
-            logger.info(f"Candidate Data Inserted. Candidate ID -- {customerId}")
-            RegistrationModel.objects.create(createdBy = customerId , updatedBy = customerId)
+            }
+           
+            RegistrationModel.objects.create(**request_dict)
+            # customerId = RegistrationModel.customer_id
+            # logger.info(f"Candidate Data Inserted. Candidate ID -- {customerId}")
+            # RegistrationModel.objects.create(createdBy = customerId , updatedBy = customerId)
     
             logger.info(f'the details of dict {request_dict}''')
             logger.info("==================== Registration DETAILS END To the DB ==================================")
-        return render(request, 'forms/regd.html',{'all_records':request_dict})
+            return Response({CODE: SUCCESSCODE})
             
     except MandatoryInputMissingException as mime:
         logger.exception(mime)
@@ -84,8 +89,8 @@ def registrationUser(request):
     
     except CustomerExistsException as cee:
         logger.exception(cee)
-        ec.append(BE001)
-        ec.append(BE001MESSAGE)
+        ec.append(BE005)
+        ec.append(BE005MESSAGE)
         ek.append(CODE)
         ek.append(MESSAGE)
         errordisplay[1].append(dict(zip(ek,ec)))

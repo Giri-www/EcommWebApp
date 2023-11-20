@@ -141,6 +141,7 @@ LOGGING = {
             'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
         }
     },
+
     'handlers': {
         'file_core': {
             'level': 'INFO',
@@ -151,6 +152,25 @@ LOGGING = {
             'formatter': 'file',
             'delay': False
         },
-    }
 
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'console'
+        }
+    },
+    'loggers': {
+        'django': {
+            'level': 'INFO',
+            'handlers': ['console'],
+            'propagate': True
+        },
+        'core': {
+            'level': 'INFO',
+            'handlers': ['file_core'],
+            'propagate': True,
+        }
+    }
 }
+
+

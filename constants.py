@@ -21,6 +21,8 @@ SE001MESSAGE = 'Error Encountered. Please Try Again'
 BE001 = "BE001"
 BE001MESSAGE = "Missing some mandatory input(s)"
 
+
+
 BE002 = "BE002"
 BE002MESSAGE = "Invalid Email Format"
 
@@ -29,3 +31,6 @@ BE003MESSAGE = "Invalid Phone Number Format"
 
 BE004 = "BE004"
 BE004MESSAGE = "Operational Error"
+
+BE005 = "BE005"
+BE005MESSAGE = "User Phone Already Exist"

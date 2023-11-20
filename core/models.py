@@ -3,9 +3,9 @@ from django.db import models
 # Create your models here.
 
 class RegistrationModel(models.Model):
-    customer_id = models.IntegerField(unique=True)
+    customer = models.IntegerField()
     customer_name = models.CharField(max_length=250 ,null=True)
-    customer_mobile_no = models.IntegerField(primary_key=True)
+    customer_mobile_no = models.BigIntegerField(primary_key=True)
     customer_email_id = models.CharField(max_length=250, null =True ,blank= False)
     customer_gender = models.CharField(max_length = 10, null=True, blank= False)
     created_on = models.DateTimeField(auto_now_add=True, blank=True, null=True)
@@ -13,7 +13,7 @@ class RegistrationModel(models.Model):
     created_by = models.IntegerField(blank=True, null=True)
     updated_by = models.IntegerField(blank=True, null=True)
     active = models.SmallIntegerField(default=1)
-    password = models.CharField(max_length=14, null=True, blank=True)
+    password = models.CharField(max_length=250, null=True, blank=True)
     me = models.CharField(max_length=14, null=True, blank=True)
      
     class Meta:

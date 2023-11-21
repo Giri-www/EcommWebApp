@@ -48,8 +48,11 @@ def registrationUser(request):
                     logger.info("Phone Number & Email Format is Valid")
                 
                     mobile_no = RegistrationModel.objects.filter(customer_mobile_no = customerMobileno).exists()
+                    email_id = RegistrationModel.objects.filter(email_id = customerEmailid).exists()
 
                     if mobile_no:
+                        raise CustomerExistsException("User Phone Already Exist")
+                    elif email_id:
                         raise CustomerExistsException("User Phone Already Exist")
                 else:
                     raise InvalidMailPhoneException("Invalid Phone or Email Format")
@@ -218,24 +221,45 @@ def generateotp_rest(requests):
 
 
 def validateOtp(email,code):
-     
+
     logger.info("<======================== Start - Validate OTP ========================>")
     try:
+        # cursor = connection.cursor()
         logger.info("====== try Block =====")
-        otp_result = CustomerOtp.objects.filter(Q(email=email) & Q(otp=code)).values('email', 'otp_time', 'otp', 'expire_time').order_by('-user_otp_id')[:1]
-         
+        otp_result = CustomerOtp.objects.filter(Q(email=email) & Q(otp=code)).values('otp_id','email', 'otp_time', 'otp', 'expire_time').order_by('-otp_id')[:1]
+        
         if len(otp_result) > 0:
             otp_result = otp_result[0]
             otp = otp_result['otp']
+            customer_otp = otp_result['otp_id']
+
             current_time = datetime.strptime(datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"), "%Y-%m-%d %H:%M:%S")
             expiry_time =  datetime.strptime(otp_result['expire_time'].strftime("%Y-%m-%d %H:%M:%S"), "%Y-%m-%d %H:%M:%S")
     
-        if current_time > expiry_time: 
-            status = 1
-            update_data = {'otp': 'expired'}
-            if otp != 'used':
-                CustomerOtp.objects.filter(Q(email=email) & Q(otp=code)).update(**update_data)
-    except:
-        raise Exception
+            if current_time > expiry_time: 
+                status = 1
+                update_data = {'otp': 'expired'}
+                if otp != 'used':
+                    CustomerOtp.objects.filter(Q(email=email) & Q(otp=code)).update(**update_data)
+            else:
+                if str(otp) == str(code):
+                    logger.info('Customer OTP matches correctly')
+                    # query = f'''UPDATE customer_otp SET otp = 'used' WHERE otp_id = {customer_otp}'''
+                    update_data = {'otp': 'used'}
+                    CustomerOtp.objects.filter(Q(email=email) & Q(otp=code)).update(**update_data)
+                    logger.info("Successfully verify email")
+                    status = 2
+                else:
+                    status = 3
+                    logger.info("Wrong Verification Code")
+        else:
+            status = 4
+            logger.info("Wrong email or verification code")
+
+    except Exception as e:
+        logger.exception(e)
+        status = 5
         
-    
+    finally:
+        logger.info("================ Sucessfully End Validate Otp finally Block ==================")
+        return status

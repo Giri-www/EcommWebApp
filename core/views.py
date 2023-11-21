@@ -217,10 +217,26 @@ def generateotp_rest(requests):
         connections.close_all()
         logger.info("<================ End finaly connrctions - Customer Generate OTP ===============>")
 
+@api_view(['POST'])
+def validateOtp(requests):
+    try:
+        logger.info("api  i")
+        data = requests.data
+        email = data['email_id']
+        code = data['code']
+        result = validateOtp_func(email,code)  
+        logger.info(f'result is {result}''') 
+        print("ok")
+        return Response({CODE:SUCCESSCODE})
+    except InvalidMailPhoneException as e:
+        print(f"Error: {e}")
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        print(f"Error: {e}")
+        return Response({"error": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-
-def validateOtp(email,code):
+def validateOtp_func(email,code):
 
     logger.info("<======================== Start - Validate OTP ========================>")
     try:

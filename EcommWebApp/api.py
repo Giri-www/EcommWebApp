@@ -7,7 +7,9 @@ urls=[
 
 #Registration
 path('signup/',registrationUser),
-path('generateotp/',generateOtp)
+path('generateotp/',generateOtp),
+path('validateotp/',validateOtp)
+
 
 
 

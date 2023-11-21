@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import hashlib
 import logging
 import re,random
@@ -12,19 +12,18 @@ from constants import *
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from django.db.models import Q
 
 logger = logging.getLogger(__name__)
 
 # Create your views here.
 @api_view(['POST'])
 def registrationUser(request):
-    
 
     errorkeys = ['Info','Business_Errors','Warnings','System_Errors']
     errordisplay = [[],[],[],[]]
     ec = []
     ek = []
-
     logger.info("================= started the register function ====================")
     try:
             data = request.data
@@ -122,6 +121,7 @@ def registrationUser(request):
 
 
 
+
 @api_view(['POST'])
 def generateOtp(requests):
     try:
@@ -150,24 +150,47 @@ def generateotp_rest(requests):
             phone = data['phone']
             email = data['email']
             otp_flag = data['otp_flag'] if data.get('otp_flag') else None
-            if phone is not None:
-                logger.info("Customer phone is not None")
-                if re.match(r"^[6789]{1}\d{9}$", str(phone)):
-                        logger.info('Customer User Name is Phone')  
-                        otp =  random.randrange(100000, 999999)
-                        otp = str(otp)
-                        logger.info(f'otp is {otp}')
-                        otptime = str(datetime.utcnow())
-                        otpdata = {"otp":str(otp),"phone":phone,"email":email,"otp_time":otptime}
-                        logger.info(f'otpdata is {otpdata}')
-                        otp_dict = CustomerOtp.objects.create(**otpdata)
-                        logger.info("<================ End - Customer Generate OTP ===============>")
-                        return otpdata
+            #for registration  
+            if otp_flag == 1:   
+                if phone and email is not None:
+                    logger.info("Customer phone is not None")
+                    if re.match(r"^[6789]{1}\d{9}$", str(phone)) and re.match(r"^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$",str(email)):
+                            logger.info('Customer User Name is Phone') 
+                            verification_code_validity = 480 
+                            otp =  random.randrange(100000, 999999)
+                            otp = str(otp)
+                            logger.info(f'otp is {otp}')
+                            otptime = str(datetime.utcnow())
+                            otpdata = {"otp":str(otp),"phone":phone,"email":email,"otp_time":otptime,"expire_time": (timedelta(minutes=verification_code_validity) + datetime.utcnow()).strftime("%Y-%m-%d %H:%M:%S")}
+                            logger.info(f'otpdata is {otpdata}')
+                            otp_dict = CustomerOtp.objects.create(**otpdata)
+                            logger.info("<================ End - Customer Generate OTP ===============>")
+                            return otp
+                    else:
+                        raise InvalidMailPhoneException("Email OR phone no is not valid")      
                 else:
-                    raise InvalidMailPhoneException("phone no is not valid")      
-            else:
-                raise InvalidMailPhoneException("Phone no should not be null")
-            
+                    raise InvalidMailPhoneException("Email OR Phone no should not be null")
+            #for LogIn    
+            if otp_flag == 2:   
+                if phone and email is not None:
+                    logger.info("Customer phone is not None")
+                    if re.match(r"^[6789]{1}\d{9}$", str(phone)) and re.match(r"^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$",str(email)):
+                            logger.info('Customer User Name is Phone')  
+                            otp =  random.randrange(100000, 999999)
+                            verification_code_validity = 480
+                            otp = str(otp)
+                            logger.info(f'otp is {otp}')
+                            otptime = str(datetime.utcnow())
+                            otpdata = {"otp":str(otp),"phone":phone,"email":email,"otp_time":otptime,"expire_time": (timedelta(minutes=verification_code_validity) + datetime.utcnow()).strftime("%Y-%m-%d %H:%M:%S")}
+                            logger.info(f'otpdata is {otpdata}')
+                            otp_dict = CustomerOtp.objects.create(**otpdata)
+                            logger.info("<================ End - Customer Generate OTP ===============>")
+                            return otpdata
+                    else:
+                        raise InvalidMailPhoneException("Email OR phone no is not valid")      
+                else:
+                    raise InvalidMailPhoneException("Email OR Phone no should not be null")
+                
     except InvalidMailPhoneException as ipee:
         logger.exception(ipee)
         ec.append(BE003)
@@ -185,9 +208,34 @@ def generateotp_rest(requests):
         ek.append(CODE)
         ek.append(MESSAGE)
         response = errordisplay[3].append(dict(zip(ek,ec)))
-
         return Response(response)
     
     finally:
         connections.close_all()
         logger.info("<================ End finaly connrctions - Customer Generate OTP ===============>")
+
+
+
+
+def validateOtp(email,code):
+     
+    logger.info("<======================== Start - Validate OTP ========================>")
+    try:
+        logger.info("====== try Block =====")
+        otp_result = CustomerOtp.objects.filter(Q(email=email) & Q(otp=code)).values('email', 'otp_time', 'otp', 'expire_time').order_by('-user_otp_id')[:1]
+         
+        if len(otp_result) > 0:
+            otp_result = otp_result[0]
+            otp = otp_result['otp']
+            current_time = datetime.strptime(datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"), "%Y-%m-%d %H:%M:%S")
+            expiry_time =  datetime.strptime(otp_result['expire_time'].strftime("%Y-%m-%d %H:%M:%S"), "%Y-%m-%d %H:%M:%S")
+    
+        if current_time > expiry_time: 
+            status = 1
+            update_data = {'otp': 'expired'}
+            if otp != 'used':
+                CustomerOtp.objects.filter(Q(email=email) & Q(otp=code)).update(**update_data)
+    except:
+        raise Exception
+        
+    

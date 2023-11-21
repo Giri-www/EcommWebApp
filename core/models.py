@@ -14,7 +14,7 @@ class RegistrationModel(models.Model):
     updated_by = models.IntegerField(blank=True, null=True)
     active = models.SmallIntegerField(default=1)
     password = models.CharField(max_length=250, null=True, blank=True)
-    me = models.CharField(max_length=14, null=True, blank=True)
+    customer_type = models.IntegerField(max_length=14, null=True, blank=True)
      
     class Meta:
         managed = True
@@ -27,7 +27,7 @@ class CustomerOtp(models.Model):
     email = models.CharField(max_length=100, blank=True, null=True)
     otp_time = models.DateTimeField(auto_now_add=True)
     otp = models.CharField(max_length=45, blank=True, null=True)
-    # 
+    expire_time = models.DateTimeField(blank=True, null=True)
     # otp1 = models.CharField(max_length=45, blank=True, null=True)
 
     class Meta:

@@ -130,7 +130,7 @@ def generateOtp(requests):
         result = generateotp_rest(requests)  
         logger.info(f'result is {result}''') 
         print("ok")
-        return Response({'CODE':SUCCESSCODE})
+        return Response({CODE:SUCCESSCODE})
     except InvalidMailPhoneException as e:
         print(f"Error: {e}")
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -140,6 +140,10 @@ def generateOtp(requests):
 
 def generateotp_rest(requests):
     logger.info("=============== Generate Otp started ================")
+    errorkeys = ['Info','Business_Errors','Warnings','System_Errors']
+    errordisplay = [[],[],[],[]]
+    ec = []
+    ek = []
     try:
             data = requests.data
             logger.info(f"Request Data : {data}")
@@ -163,8 +167,26 @@ def generateotp_rest(requests):
                     raise InvalidMailPhoneException("phone no is not valid")      
             else:
                 raise InvalidMailPhoneException("Phone no should not be null")
+            
+    except InvalidMailPhoneException as ipee:
+        logger.exception(ipee)
+        ec.append(BE003)
+        ec.append(BE003MESSAGE)
+        ek.append(CODE)
+        ek.append(MESSAGE)
+        errordisplay[1].append(dict(zip(ek,ec)))
+        response = {"Errors":dict(zip(errorkeys,errordisplay))}
+        return Response(response)
+    
     except Exception as e:
-        return Response({CODE:ERRORCODE})
+        logger.exception(e)
+        ec.append(SE001)
+        ec.append(SE001MESSAGE)
+        ek.append(CODE)
+        ek.append(MESSAGE)
+        response = errordisplay[3].append(dict(zip(ek,ec)))
+
+        return Response(response)
     
     finally:
         connections.close_all()

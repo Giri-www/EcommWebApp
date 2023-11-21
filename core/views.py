@@ -5,6 +5,7 @@ import re,random
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.db import connection, connections, transaction
+import requests
 from errors import *
 from .models import RegistrationModel,CustomerOtp
 from constants import *
@@ -122,18 +123,31 @@ def registrationUser(request):
 
 
 @api_view(['POST'])
-def generateOtp(request):
+def generateOtp(requests):
+    try:
+        print("try")
+        logger.info("api  i")
+        result = generateotp_rest(requests)  
+        logger.info(f'result is {result}''') 
+        print("ok")
+        return Response({'CODE':SUCCESSCODE})
+    except InvalidMailPhoneException as e:
+        print(f"Error: {e}")
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        print(f"Error: {e}")
+        return Response({"error": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+def generateotp_rest(requests):
     logger.info("=============== Generate Otp started ================")
     try:
-
-            data = request.data
+            data = requests.data
             logger.info(f"Request Data : {data}")
-            
             phone = data['phone']
             email = data['email']
             otp_flag = data['otp_flag'] if data.get('otp_flag') else None
             if phone is not None:
-                logger.info("Cuatomer phone is not None")
+                logger.info("Customer phone is not None")
                 if re.match(r"^[6789]{1}\d{9}$", str(phone)):
                         logger.info('Customer User Name is Phone')  
                         otp =  random.randrange(100000, 999999)
@@ -142,9 +156,9 @@ def generateOtp(request):
                         otptime = str(datetime.utcnow())
                         otpdata = {"otp":str(otp),"phone":phone,"email":email,"otp_time":otptime}
                         logger.info(f'otpdata is {otpdata}')
-                        CustomerOtp.objects.create(**otpdata)
+                        otp_dict = CustomerOtp.objects.create(**otpdata)
                         logger.info("<================ End - Customer Generate OTP ===============>")
-                        return Response({CODE : SUCCESSCODE})
+                        return otpdata
                 else:
                     raise InvalidMailPhoneException("phone no is not valid")      
             else:

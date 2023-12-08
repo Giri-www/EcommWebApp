@@ -48,7 +48,7 @@ def registrationUser(request):
                     logger.info("Phone Number & Email Format is Valid")
                 
                     mobile_no = RegistrationModel.objects.filter(customer_mobile_no = customerMobileno).exists()
-                    email_id = RegistrationModel.objects.filter(email_id = customerEmailid).exists()
+                    email_id = RegistrationModel.objects.filter(customer_email_id = customerEmailid).exists()
 
                     if mobile_no:
                         raise CustomerExistsException("User Phone Already Exist")
@@ -257,6 +257,8 @@ def validateOtp_func(email,code):
                 update_data = {'otp': 'expired'}
                 if otp != 'used':
                     CustomerOtp.objects.filter(Q(email=email) & Q(otp=code)).update(**update_data)
+                    raise VerificationCodeExpireException("Entered verification code expired.")
+                logger.info("Entered verification code expired.")
             else:
                 if str(otp) == str(code):
                     logger.info('Customer OTP matches correctly')

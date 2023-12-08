@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'core'
+    'core',
+    'products'
 ]
 
 MIDDLEWARE = [
@@ -153,6 +154,16 @@ LOGGING = {
             'delay': False
         },
 
+        'file_products': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'products.log',
+            'maxBytes': 10485700, # 10.4857 MB (NEW)  # 020 MB
+            'backupCount': 2,
+            'formatter': 'file',
+            'delay': False
+        },
+
         'console': {
             'level': 'INFO',
             'class': 'logging.StreamHandler',
@@ -168,6 +179,12 @@ LOGGING = {
         'core': {
             'level': 'INFO',
             'handlers': ['file_core'],
+            'propagate': True,
+        },
+
+        'products': {
+            'level': 'INFO',
+            'handlers': ['file_products'],
             'propagate': True,
         }
     }

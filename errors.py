@@ -12,3 +12,13 @@ class CustomerExistsException(Exception):
     def __init___(self, message):
         super(CustomerExistsException, self).__init__(message)
         self.message = message
+
+class  VerificationCodeExpireException(Exception):
+    def __init___(self, message):
+        super(VerificationCodeExpireException , self).__init__(message)
+        self.message = message
+
+class  InvalidCateogoryException(Exception):
+    def __init___(self, message):
+        super(InvalidCateogoryException , self).__init__(message)
+        self.message = message

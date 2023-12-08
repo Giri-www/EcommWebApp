@@ -3,7 +3,7 @@ from django.db import models
 # Create your models here.
 
 class RegistrationModel(models.Model):
-    customer_id = models.IntegerField(unique=True)
+    customer_id = models.IntegerField(unique=True, auto_created=True)
     customer_name = models.CharField(max_length=250 ,null=True)
     customer_mobile_no = models.BigIntegerField(primary_key=True)
     customer_email_id = models.CharField(max_length=250, null =True ,blank= False)

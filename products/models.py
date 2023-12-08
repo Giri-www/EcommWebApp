@@ -24,4 +24,5 @@ class Product(models.Model):
     product_brand = models.CharField(max_length=255, blank=True, null=True)
     product_manufacturer = models.CharField(max_length=255, blank=True, null=True)
     product_is_available = models.BooleanField(default=True)
+    product_is_deleted = models.IntegerField(default=1)
     # product_is_featured = models.BooleanField(default=False)

@@ -29,19 +29,48 @@ def addupdate_category(request):
     ek = []
     logger.info("================= started the addupdate category  ====================")
 
-    data = request.data
-    logger.info(f"request data = {data}")
-    
-    #if customer_type ==1:
-    category = data['category_name']
+    try:
+        data = request.data
+        logger.info(f"request data = {data}")
+        
+        #if customer_type ==1:
+        category = data['category_name']
+        #     data['delete_flag'] =  1
 
-    if (category is  None  and category == ''): 
-            raise InvalidCateogoryException("Cateogory should not be empty")
+        if (category is  None  and category == ''): 
+                raise InvalidCateogoryException("Cateogory should not be empty")
+        
+        if 'category_id' in data:
+                logger.info(f"category ID (UPDATE): {data['category_id']}")
+                Category.objects.filter(category_id=data['category_id']).update(**data)
+                return Response({CODE:SUCCESSCODE})
+        else:
+                Category.objects.create(**data)
+                return Response({CODE:SUCCESSCODE})
+    except InvalidCateogoryException as ice:
+        logger.exception(ice)
+        ec.append(BE006)
+        ec.append(BE006MESSAGE)
+        ek.append(CODE)
+        ek.append(MESSAGE)
+        errordisplay[1].append(dict(zip(ek,ec)))
+        return Response ({ERROR:dict(zip(errorkeys,errordisplay))})
     
-    if 'category_id' in data:
-            logger.info(f"category ID (UPDATE): {data['category_id']}")
-            Category.objects.filter(category_id=data['category_id']).update(**data)
-            return Response({CODE:SUCCESSCODE})
+    except Exception as e:
+        logger.exception(e)
+        ec.append(SE001)
+        ec.append(SE001MESSAGE)
+        ek.append(CODE)
+        ek.append(MESSAGE)
+        errordisplay[3].append(dict(zip(ek,ec)))
+        return Response ({ERROR:dict(zip(errorkeys,errordisplay))})
+    finally:
+        logger.warning("< ================= END - ADD Cateogory DETAILS ==================== >")
+            
+
+
+
+        
 
 
 

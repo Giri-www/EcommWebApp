@@ -1,6 +1,7 @@
 
 from django.urls import path
-from core.views import *
+from core.views import * 
+from products.views import *
 
  
 urls=[
@@ -8,8 +9,11 @@ urls=[
 #Registration
 path('signup/',registrationUser),
 path('generateotp/',generateOtp),
-path('validateotp/',validateOtp)
 
+
+
+#Products
+path('addupdatecategory/',addupdate_category)
 
 
 

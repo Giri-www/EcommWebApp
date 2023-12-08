@@ -34,3 +34,6 @@ BE004MESSAGE = "Operational Error"
 
 BE005 = "BE005"
 BE005MESSAGE = "User Phone Already Exist"
+
+BE006 = "BE006"
+BE006MESSAGE = "Invalid Cateogory Exception "

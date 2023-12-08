@@ -22,3 +22,8 @@ class  InvalidCateogoryException(Exception):
     def __init___(self, message):
         super(InvalidCateogoryException , self).__init__(message)
         self.message = message
+
+class  InvalidOrderingIndexException(Exception):
+    def __init___(self, message):
+        super(InvalidOrderingIndexException , self).__init__(message)
+        self.message = message

@@ -12,8 +12,9 @@ path('generateotp/',generateOtp),
 
 
 
-#Products
-path('addupdatecategory/',addupdate_category)
+#Products-Category
+path('addupdatecategory/',addupdate_category),
+path('fetchallcategory/',fetchCategoryAllDetails)
 
 
 

@@ -12,6 +12,7 @@ REGISTRATION_SUCCESS = "Successfully Registered"
 
 
 
+
 """ SYSTEM ERRORS """
 
 SE001 = 'SE001'
@@ -37,3 +38,6 @@ BE005MESSAGE = "User Phone Already Exist"
 
 BE006 = "BE006"
 BE006MESSAGE = "Invalid Cateogory Exception "
+
+BE007 = "BE007"
+BE007MESSAGE = "Invalid Ordering Exception "

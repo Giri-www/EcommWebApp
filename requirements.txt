@@ -20,3 +20,4 @@ drf-spectacular
 # reportlab
 xhtml2pdf
 bcrypt
+drf-yasg
